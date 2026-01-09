@@ -13,7 +13,6 @@ import {
   Area,
 } from "recharts";
 import {
-  TrendingUp,
   Target,
   ArrowUpRight,
   ArrowDownRight,
@@ -28,10 +27,90 @@ import {
   Trash2,
   Plus,
   LogOut,
+  AlertCircle,
+  Save,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// --- CARD MÉTRICA (SETAS E ALVO) ---
+// --- COMPONENTE DE NOTIFICAÇÃO (TOAST) ---
+function Toast({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: "error" | "success";
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50, x: "-50%" }}
+      animate={{ opacity: 1, y: 0, x: "-50%" }}
+      exit={{ opacity: 0, scale: 0.5, x: "-50%" }}
+      className={`fixed bottom-10 left-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-[2rem] shadow-2xl border text-white font-black text-[10px] uppercase tracking-widest min-w-[280px] justify-center ${
+        type === "error"
+          ? "bg-rose-500 border-rose-400"
+          : "bg-emerald-500 border-emerald-400"
+      }`}
+    >
+      {type === "error" ? <AlertCircle size={16} /> : <Check size={16} />}
+      {message}
+    </motion.div>
+  );
+}
+
+// --- MODAL DE CONFIRMAÇÃO PERSONALIZADO ---
+function ConfirmModal({ isOpen, title, onConfirm, onCancel }: any) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl text-center"
+          >
+            <div className="bg-rose-50 text-rose-500 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter mb-2">
+              {title}
+            </h3>
+            <p className="text-slate-400 text-sm font-bold mb-8 uppercase tracking-widest">
+              Essa ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={onCancel}
+                className="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={onConfirm}
+                className="flex-1 py-4 rounded-2xl bg-rose-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-100 hover:bg-rose-600 transition-all"
+              >
+                Confirmar
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// --- CARD MÉTRICA ---
 function CardMetrica({
   label,
   value,
@@ -74,12 +153,20 @@ export default function SaaSFinanceiro() {
   const [categorias, setCategorias] = useState<any[]>([]);
   const [mes, setMes] = useState(new Date().getMonth());
   const [ano, setAno] = useState(new Date().getFullYear());
+  const [toast, setToast] = useState<{
+    msg: string;
+    type: "error" | "success";
+  } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    id: string;
+    isOpen: boolean;
+  }>({ id: "", isOpen: false });
+
   const [userConfig, setUserConfig] = useState({
-    nome: "Investidor",
+    nome: "INVESTIDOR",
     emoji: "🚀",
     meta: 20,
   });
-
   const [form, setForm] = useState({
     desc: "",
     valor: "",
@@ -90,13 +177,48 @@ export default function SaaSFinanceiro() {
   const [busca, setBusca] = useState("");
   const [novaCat, setNovaCat] = useState("");
 
-  // FUNÇÃO DE LOGOUT
   async function handleLogout() {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }
 
+  // SALVAR CONFIGURAÇÕES NO SUPABASE (Persistente)
+  async function salvarPerfil() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        display_name: userConfig.nome,
+        emoji: userConfig.emoji,
+        meta_save: userConfig.meta,
+      },
+    });
+
+    if (!error) {
+      setToast({ msg: "PERFIL ATUALIZADO!", type: "success" });
+    } else {
+      setToast({ msg: "ERRO AO SALVAR", type: "error" });
+    }
+  }
+
   async function carregarDados() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      // Carrega dados do perfil salvos no Supabase
+      setUserConfig({
+        nome:
+          user.user_metadata?.display_name ||
+          user.email?.split("@")[0].toUpperCase(),
+        emoji: user.user_metadata?.emoji || "🚀",
+        meta: user.user_metadata?.meta_save || 20,
+      });
+    }
+
     const primeiroDia =
       viewMode === "mes"
         ? new Date(ano, mes, 1).toISOString()
@@ -128,20 +250,7 @@ export default function SaaSFinanceiro() {
   }
 
   useEffect(() => {
-    // Verifica usuário antes de carregar dados
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setUserConfig((prev) => ({
-          ...prev,
-          nome: user.email?.split("@")[0].toUpperCase() || "INVESTIDOR",
-        }));
-        carregarDados();
-      }
-    };
-    checkUser();
+    carregarDados();
   }, [mes, ano, viewMode]);
 
   const finance = useMemo(() => {
@@ -179,8 +288,8 @@ export default function SaaSFinanceiro() {
 
     let acc = 0;
     transacoes.forEach((t) => {
-      const d = new Date(t.data);
-      const idx = viewMode === "mes" ? d.getUTCDate() - 1 : d.getUTCMonth();
+      const d = new Date(t.data + "T12:00:00");
+      const idx = viewMode === "mes" ? d.getDate() - 1 : d.getMonth();
       if (mapa[idx]) {
         if (t.tipo === "Entrada") mapa[idx].ganhos += t.valor;
         else mapa[idx].gastos += t.valor;
@@ -195,7 +304,6 @@ export default function SaaSFinanceiro() {
       inVal,
       outTotal,
       saldoReal: inVal - outPagas,
-      saldoPrevisto: inVal - outTotal,
       economia,
       graphData,
     };
@@ -216,19 +324,47 @@ export default function SaaSFinanceiro() {
         categoria: form.cat,
         data: form.data,
         pago: form.tipo === "Entrada",
-        user_id: user.id, // IMPORTANTE: Vincula ao usuário
+        user_id: user.id,
       },
     ]);
     if (!error) {
       setForm({ ...form, desc: "", valor: "" });
       carregarDados();
+      setToast({ msg: "SALVO COM SUCESSO!", type: "success" });
     }
+  };
+
+  const confirmarExclusao = async () => {
+    const { error } = await supabase
+      .from("transacoes")
+      .delete()
+      .eq("id", confirmDelete.id);
+    if (!error) {
+      carregarDados();
+      setToast({ msg: "EXCLUÍDO!", type: "success" });
+    }
+    setConfirmDelete({ id: "", isOpen: false });
   };
 
   return (
     <div className="fixed inset-0 bg-slate-50 flex items-center justify-center p-0 md:p-4 overflow-hidden select-none font-sans">
+      <AnimatePresence>
+        {toast && (
+          <Toast
+            message={toast.msg}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+      </AnimatePresence>
+      <ConfirmModal
+        isOpen={confirmDelete.isOpen}
+        title="Deseja apagar?"
+        onConfirm={confirmarExclusao}
+        onCancel={() => setConfirmDelete({ id: "", isOpen: false })}
+      />
+
       <div className="w-full h-full max-h-screen bg-white md:rounded-[3rem] shadow-2xl flex flex-col overflow-hidden relative border border-slate-200">
-        {/* HEADER */}
         <header className="p-6 md:p-8 flex justify-between items-center border-b border-slate-50 shrink-0">
           <div className="flex items-center gap-4">
             <div className="bg-indigo-600 p-2.5 rounded-2xl text-white shadow-lg">
@@ -239,7 +375,6 @@ export default function SaaSFinanceiro() {
               <span className="text-indigo-600">{userConfig.emoji}</span>
             </h1>
           </div>
-
           <div className="flex items-center gap-3">
             <div className="flex bg-slate-100 p-1 rounded-xl border items-center shrink-0">
               <button
@@ -248,7 +383,7 @@ export default function SaaSFinanceiro() {
               >
                 <ChevronLeft size={14} />
               </button>
-              <span className="text-[10px] font-black uppercase w-20 md:w-28 text-center">
+              <span className="text-[10px] font-black uppercase w-28 text-center">
                 {new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(
                   new Date(ano, mes)
                 )}{" "}
@@ -270,7 +405,6 @@ export default function SaaSFinanceiro() {
           </div>
         </header>
 
-        {/* NAVEGAÇÃO ABAS */}
         <nav className="px-10 flex gap-8 bg-white shrink-0 border-b border-slate-100">
           <button
             onClick={() => setActiveTab("dash")}
@@ -294,7 +428,6 @@ export default function SaaSFinanceiro() {
           </button>
         </nav>
 
-        {/* CONTEÚDO PRINCIPAL */}
         <main className="flex-1 overflow-hidden p-6 md:p-10 flex flex-col bg-slate-50/20">
           <AnimatePresence mode="wait">
             {activeTab === "dash" ? (
@@ -302,7 +435,6 @@ export default function SaaSFinanceiro() {
                 key="dash"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
                 className="h-full flex flex-col gap-8"
               >
                 <div className="flex flex-wrap md:flex-nowrap gap-6 shrink-0">
@@ -334,89 +466,69 @@ export default function SaaSFinanceiro() {
                     bg="bg-indigo-100/50"
                   />
                 </div>
-
                 <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  <div className="lg:col-span-8 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col overflow-hidden">
-                    <div className="flex justify-between items-center mb-6 shrink-0">
-                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        Fluxo de Caixa
-                      </h3>
-                    </div>
-                    <div className="flex-1 min-h-0">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={finance.graphData}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            vertical={false}
-                            stroke="#f1f5f9"
-                          />
-                          <XAxis
-                            dataKey="name"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fontSize: 10, fontWeight: "bold" }}
-                          />
-                          <Tooltip
-                            cursor={{ fill: "#f8fafc" }}
-                            contentStyle={{
-                              borderRadius: "16px",
-                              border: "none",
-                            }}
-                          />
-                          <Bar
-                            dataKey="ganhos"
-                            fill="#10b981"
-                            radius={[4, 4, 0, 0]}
-                            barSize={viewMode === "mes" ? 8 : 25}
-                          />
-                          <Bar
-                            dataKey="gastos"
-                            fill="#f43f5e"
-                            radius={[4, 4, 0, 0]}
-                            barSize={viewMode === "mes" ? 8 : 25}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                  <div className="lg:col-span-8 bg-white p-8 rounded-[3rem] border border-slate-100 flex flex-col overflow-hidden shadow-sm">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={finance.graphData}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="#f1f5f9"
+                        />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 10, fontWeight: "bold" }}
+                        />
+                        <Tooltip
+                          cursor={{ fill: "#f8fafc" }}
+                          contentStyle={{
+                            borderRadius: "16px",
+                            border: "none",
+                          }}
+                        />
+                        <Bar
+                          dataKey="ganhos"
+                          fill="#10b981"
+                          radius={[4, 4, 0, 0]}
+                          barSize={8}
+                        />
+                        <Bar
+                          dataKey="gastos"
+                          fill="#f43f5e"
+                          radius={[4, 4, 0, 0]}
+                          barSize={8}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-
                   <div className="lg:col-span-4 bg-slate-900 p-8 rounded-[3rem] text-white flex flex-col shadow-2xl overflow-hidden">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">
-                      Evolução do Saldo
-                    </h3>
-                    <div className="flex-1 min-h-0">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={finance.graphData}>
-                          <defs>
-                            <linearGradient
-                              id="grad"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#6366f1"
-                                stopOpacity={0.4}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#6366f1"
-                                stopOpacity={0}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <Area
-                            type="monotone"
-                            dataKey="saldo"
-                            stroke="#818cf8"
-                            strokeWidth={3}
-                            fill="url(#grad)"
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={finance.graphData}>
+                        <defs>
+                          <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop
+                              offset="5%"
+                              stopColor="#6366f1"
+                              stopOpacity={0.4}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#6366f1"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <Area
+                          type="monotone"
+                          dataKey="saldo"
+                          stroke="#818cf8"
+                          strokeWidth={3}
+                          fill="url(#grad)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </motion.div>
@@ -425,21 +537,10 @@ export default function SaaSFinanceiro() {
                 key="lista"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
                 className="h-full grid grid-cols-1 lg:grid-cols-12 gap-10 overflow-hidden"
               >
                 <div className="lg:col-span-4 shrink-0 flex flex-col">
                   <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl space-y-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Plus
-                        className="text-indigo-600"
-                        size={16}
-                        strokeWidth={3}
-                      />
-                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        Novo Registro
-                      </h3>
-                    </div>
                     <form onSubmit={handleAdd} className="space-y-3">
                       <input
                         type="date"
@@ -496,7 +597,7 @@ export default function SaaSFinanceiro() {
                           </option>
                         ))}
                       </select>
-                      <button className="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                      <button className="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg">
                         Registrar
                       </button>
                     </form>
@@ -529,7 +630,7 @@ export default function SaaSFinanceiro() {
                           className={`flex items-center justify-between p-6 rounded-[2.5rem] border transition-all ${
                             t.pago
                               ? "bg-slate-50/50 border-slate-100"
-                              : "bg-white border-white shadow-xl shadow-slate-200/40"
+                              : "bg-white shadow-xl shadow-slate-200/40 border-white"
                           }`}
                         >
                           <div className="flex items-center gap-6">
@@ -567,22 +668,34 @@ export default function SaaSFinanceiro() {
                                 {t.descricao}
                               </h4>
                               <p className="text-[9px] font-bold text-slate-300">
-                                {new Date(t.data).toLocaleDateString("pt-BR")}
+                                {new Date(
+                                  t.data + "T12:00:00"
+                                ).toLocaleDateString("pt-BR")}
                               </p>
                             </div>
                           </div>
-                          <p
-                            className={`font-black text-base ${
-                              t.tipo === "Entrada"
-                                ? "text-emerald-500"
-                                : "text-rose-500"
-                            }`}
-                          >
-                            {t.tipo === "Entrada" ? "+" : "-"} R${" "}
-                            {t.valor.toLocaleString("pt-BR", {
-                              minimumFractionDigits: 2,
-                            })}
-                          </p>
+                          <div className="flex items-center gap-4">
+                            <p
+                              className={`font-black text-base ${
+                                t.tipo === "Entrada"
+                                  ? "text-emerald-500"
+                                  : "text-rose-500"
+                              }`}
+                            >
+                              {t.tipo === "Entrada" ? "+" : "-"} R${" "}
+                              {t.valor.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </p>
+                            <button
+                              onClick={() =>
+                                setConfirmDelete({ id: t.id, isOpen: true })
+                              }
+                              className="p-2 text-slate-200 hover:text-rose-500 transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                   </div>
@@ -593,7 +706,6 @@ export default function SaaSFinanceiro() {
         </main>
       </div>
 
-      {/* MODAL CONFIG */}
       <AnimatePresence>
         {isConfigOpen && (
           <motion.div
@@ -605,53 +717,85 @@ export default function SaaSFinanceiro() {
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative"
+              className="bg-white w-full max-w-2xl rounded-[3.5rem] p-10 shadow-2xl relative"
             >
               <button
                 onClick={() => setIsConfigOpen(false)}
-                className="absolute top-8 right-8 text-slate-300"
+                className="absolute top-8 right-8 text-slate-300 hover:text-slate-900"
               >
                 <X size={28} />
               </button>
-              <h2 className="text-3xl font-black tracking-tighter mb-10">
-                Configurações
+              <h2 className="text-3xl font-black tracking-tighter mb-10 uppercase italic">
+                Ajustes Finos
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-                      Nome
+                      Seu Nome
                     </label>
                     <input
                       value={userConfig.nome}
                       onChange={(e) =>
-                        setUserConfig({ ...userConfig, nome: e.target.value })
-                      }
-                      className="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 font-black">
-                      Meta %
-                    </label>
-                    <input
-                      type="number"
-                      value={userConfig.meta}
-                      onChange={(e) =>
                         setUserConfig({
                           ...userConfig,
-                          meta: parseInt(e.target.value) || 0,
+                          nome: e.target.value.toUpperCase(),
                         })
                       }
-                      className="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full p-4 bg-slate-50 rounded-2xl font-black border-none outline-none focus:ring-2 focus:ring-indigo-500 uppercase"
                     />
                   </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                        Emoji
+                      </label>
+                      <input
+                        value={userConfig.emoji}
+                        onChange={(e) =>
+                          setUserConfig({
+                            ...userConfig,
+                            emoji: e.target.value,
+                          })
+                        }
+                        className="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none text-center text-xl"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                        Meta %
+                      </label>
+                      <input
+                        type="number"
+                        value={userConfig.meta}
+                        onChange={(e) =>
+                          setUserConfig({
+                            ...userConfig,
+                            meta: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        className="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={salvarPerfil}
+                    className="w-full bg-indigo-600 text-white p-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100"
+                  >
+                    <Save size={16} /> Salvar Perfil
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full bg-rose-50 text-rose-600 p-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center justify-center gap-2 mt-4"
+                  >
+                    <LogOut size={16} /> Sair
+                  </button>
                 </div>
-                <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col h-64">
+                <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col h-72">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4 italic">
                     Categorias
                   </label>
-                  <div className="flex gap-2 mb-4">
+                  <div className="flex gap-2 mb-4 shrink-0">
                     <input
                       placeholder="NOVA..."
                       value={novaCat}
@@ -668,29 +812,23 @@ export default function SaaSFinanceiro() {
                           carregarDados();
                         }
                       }}
-                      className="bg-indigo-600 text-white px-4 rounded-xl font-black"
+                      className="bg-slate-900 text-white px-4 rounded-xl font-black"
                     >
                       +
                     </button>
                   </div>
-                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
                     {categorias.map((c) => (
                       <div
                         key={c.id}
-                        className="flex justify-between items-center bg-white p-3 px-4 rounded-xl text-[10px] font-black uppercase shadow-sm"
+                        className="flex justify-between items-center bg-white p-3 px-4 rounded-xl text-[10px] font-black uppercase shadow-sm border border-slate-100"
                       >
                         <span>{c.nome}</span>
                         <button
                           onClick={async () => {
-                            if (confirm("Apagar?")) {
-                              await supabase
-                                .from("categorias")
-                                .delete()
-                                .eq("id", c.id);
-                              carregarDados();
-                            }
+                            setConfirmDelete({ id: c.id, isOpen: true });
                           }}
-                          className="text-slate-200 hover:text-rose-500 transition-colors"
+                          className="text-slate-200 hover:text-rose-500"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -699,14 +837,6 @@ export default function SaaSFinanceiro() {
                   </div>
                 </div>
               </div>
-
-              {/* BOTÃO DE LOGOUT ADICIONADO */}
-              <button
-                onClick={handleLogout}
-                className="w-full mt-6 bg-rose-50 text-rose-600 p-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-rose-100 transition-all flex items-center justify-center gap-2"
-              >
-                <LogOut size={16} /> Sair da Conta
-              </button>
             </motion.div>
           </motion.div>
         )}
@@ -715,6 +845,7 @@ export default function SaaSFinanceiro() {
       <style jsx global>{`
         body {
           overflow: hidden;
+          background: #f8fafc;
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 5px;
