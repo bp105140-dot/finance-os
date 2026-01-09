@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           response = NextResponse.next({
@@ -31,33 +31,39 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Esta função verifica se o usuário está logado
+  // Recupera o usuário atual
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 1. Se o usuário não estiver logado e tentar acessar o dashboard, vai para /login
-  if (!user && !request.nextUrl.pathname.startsWith("/login")) {
+  // --- LÓGICA DE PROTEÇÃO DE ROTAS ---
+
+  const isLoginPage = request.nextUrl.pathname === "/login";
+  const isRedefinirPage = request.nextUrl.pathname === "/redefinir-senha";
+
+  // Se o usuário NÃO está logado e tenta acessar uma página que NÃO é login nem redefinir
+  if (!user && !isLoginPage && !isRedefinirPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 2. Se o usuário já estiver logado e tentar acessar o /login, volta para o dashboard
-  if (user && request.nextUrl.pathname.startsWith("/login")) {
+  // Se o usuário JÁ está logado e tenta ir para o login, manda para o dashboard
+  if (user && isLoginPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
   return response;
 }
 
+// Configura em quais caminhos o middleware deve rodar
 export const config = {
   matcher: [
     /*
-     * Faz o match em todas as rotas exceto as que começam com:
-     * - _next/static (ficheiros estáticos)
-     * - _next/image (otimização de imagens)
-     * - favicon.ico (ícone do site)
-     * - public (ficheiros públicos como o logo)
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public (public files like logos)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|public|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
