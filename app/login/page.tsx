@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// --- COMPONENTE DE TOAST (O SUBSTITUTO DO ALERT) ---
 function Toast({
   message,
   type,
@@ -31,7 +30,7 @@ function Toast({
       initial={{ opacity: 0, y: 50, x: "-50%" }}
       animate={{ opacity: 1, y: 0, x: "-50%" }}
       exit={{ opacity: 0, scale: 0.5, x: "-50%" }}
-      className={`fixed bottom-10 left-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-[2rem] shadow-2xl border text-white font-black text-xs uppercase tracking-widest min-w-[300px] justify-center ${
+      className={`fixed bottom-10 left-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-[2rem] shadow-2xl border text-white font-black text-[10px] uppercase tracking-widest min-w-[300px] justify-center ${
         type === "error"
           ? "bg-rose-500 border-rose-400"
           : "bg-emerald-500 border-emerald-400"
@@ -57,8 +56,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
-
-  // Estado para a notificação
   const [toast, setToast] = useState<{
     msg: string;
     type: "error" | "success";
@@ -67,7 +64,6 @@ export default function Login() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     const emailLimpo = email.toLowerCase().trim();
 
     if (isRegistering) {
@@ -76,10 +72,9 @@ export default function Login() {
         password,
         options: { emailRedirectTo: window.location.origin },
       });
-      if (error) {
-        setToast({ msg: "Erro no cadastro: " + error.message, type: "error" });
-      } else {
-        setToast({ msg: "Sucesso! Verifique seu e-mail.", type: "success" });
+      if (error) setToast({ msg: "ERRO: " + error.message, type: "error" });
+      else {
+        setToast({ msg: "SUCESSO! VERIFIQUE SEU E-MAIL.", type: "success" });
         setIsRegistering(false);
       }
     } else {
@@ -87,25 +82,31 @@ export default function Login() {
         email: emailLimpo,
         password,
       });
-
-      if (error) {
-        setToast({
-          msg: "Acesso Negado: E-mail ou senha incorretos",
-          type: "error",
-        });
-      } else {
-        setToast({ msg: "Acesso autorizado! Entrando...", type: "success" });
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1000);
-      }
+      if (error)
+        setToast({ msg: "ACESSO NEGADO: DADOS INCORRETOS", type: "error" });
+      else window.location.href = "/";
     }
     setLoading(false);
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setToast({ msg: "DIGITE SEU E-MAIL NO CAMPO ACIMA!", type: "error" });
+      return;
+    }
+    // Redireciona dinamicamente para onde o usuário estiver (Localhost ou Vercel)
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.toLowerCase().trim(),
+      {
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      }
+    );
+    if (error) setToast({ msg: "ERRO: " + error.message, type: "error" });
+    else setToast({ msg: "E-MAIL DE RECUPERAÇÃO ENVIADO!", type: "success" });
+  };
+
   return (
-    <div className="fixed inset-0 bg-slate-50 flex items-center justify-center p-4 md:p-6 font-sans select-none overflow-hidden">
-      {/* NOTIFICAÇÃO FLUTUANTE */}
+    <div className="fixed inset-0 bg-slate-50 flex items-center justify-center p-4 font-sans select-none overflow-hidden">
       <AnimatePresence>
         {toast && (
           <Toast
@@ -119,11 +120,11 @@ export default function Login() {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-[440px] bg-white rounded-[3.5rem] shadow-2xl border border-slate-100 p-10 flex flex-col items-center relative"
+        className="w-full max-w-[440px] bg-white rounded-[3.5rem] shadow-2xl border border-slate-100 p-10 flex flex-col items-center relative overflow-hidden"
       >
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-50" />
 
-        <div className="bg-indigo-600 p-4 rounded-[2rem] text-white mb-6 shadow-xl shadow-indigo-100 relative z-10">
+        <div className="bg-indigo-600 p-4 rounded-[2rem] text-white mb-6 shadow-xl relative z-10">
           <Zap size={32} fill="currentColor" />
         </div>
 
@@ -185,7 +186,7 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-8 text-center relative z-10">
+        <div className="mt-8 flex flex-col gap-4 text-center relative z-10">
           <button
             onClick={() => setIsRegistering(!isRegistering)}
             className="text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest"
@@ -194,6 +195,17 @@ export default function Login() {
               ? "Já tenho uma conta? Entrar"
               : "Ainda não tem conta? Registre-se"}
           </button>
+
+          {/* BOTÃO COM COR CORRIGIDA (SLATE-500) */}
+          {!isRegistering && (
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-[10px] font-black text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-widest italic underline underline-offset-4 decoration-slate-200"
+            >
+              Esqueci minha senha
+            </button>
+          )}
         </div>
       </motion.div>
     </div>
