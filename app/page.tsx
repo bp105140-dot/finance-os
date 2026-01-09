@@ -182,13 +182,11 @@ export default function SaaSFinanceiro() {
     window.location.href = "/login";
   }
 
-  // SALVAR CONFIGURAÇÕES NO SUPABASE (Persistente)
   async function salvarPerfil() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-
     const { error } = await supabase.auth.updateUser({
       data: {
         display_name: userConfig.nome,
@@ -196,12 +194,8 @@ export default function SaaSFinanceiro() {
         meta_save: userConfig.meta,
       },
     });
-
-    if (!error) {
-      setToast({ msg: "PERFIL ATUALIZADO!", type: "success" });
-    } else {
-      setToast({ msg: "ERRO AO SALVAR", type: "error" });
-    }
+    if (!error) setToast({ msg: "PERFIL ATUALIZADO!", type: "success" });
+    else setToast({ msg: "ERRO AO SALVAR", type: "error" });
   }
 
   async function carregarDados() {
@@ -209,7 +203,6 @@ export default function SaaSFinanceiro() {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
-      // Carrega dados do perfil salvos no Supabase
       setUserConfig({
         nome:
           user.user_metadata?.display_name ||
@@ -254,9 +247,11 @@ export default function SaaSFinanceiro() {
   }, [mes, ano, viewMode]);
 
   const finance = useMemo(() => {
+    // AJUSTE AQUI: Só soma entrada se estiver flegada (pago === true)
     const inVal = transacoes
-      .filter((t) => t.tipo === "Entrada")
+      .filter((t) => t.tipo === "Entrada" && t.pago)
       .reduce((a, b) => a + b.valor, 0);
+
     const outTotal = transacoes
       .filter((t) => t.tipo === "Saída")
       .reduce((a, b) => a + b.valor, 0);
@@ -291,8 +286,11 @@ export default function SaaSFinanceiro() {
       const d = new Date(t.data + "T12:00:00");
       const idx = viewMode === "mes" ? d.getDate() - 1 : d.getMonth();
       if (mapa[idx]) {
-        if (t.tipo === "Entrada") mapa[idx].ganhos += t.valor;
-        else mapa[idx].gastos += t.valor;
+        // AJUSTE NO GRÁFICO TAMBÉM: Só mostra no gráfico se estiver flegado
+        if (t.pago) {
+          if (t.tipo === "Entrada") mapa[idx].ganhos += t.valor;
+          else mapa[idx].gastos += t.valor;
+        }
       }
     });
     const graphData = mapa.map((d) => {
@@ -323,14 +321,14 @@ export default function SaaSFinanceiro() {
         tipo: form.tipo,
         categoria: form.cat,
         data: form.data,
-        pago: form.tipo === "Entrada",
+        pago: false, // AJUSTE AQUI: Começa sempre como não flegado (pendente)
         user_id: user.id,
       },
     ]);
     if (!error) {
       setForm({ ...form, desc: "", valor: "" });
       carregarDados();
-      setToast({ msg: "SALVO COM SUCESSO!", type: "success" });
+      setToast({ msg: "REGISTRADO!", type: "success" });
     }
   };
 
@@ -375,7 +373,32 @@ export default function SaaSFinanceiro() {
               <span className="text-indigo-600">{userConfig.emoji}</span>
             </h1>
           </div>
+
           <div className="flex items-center gap-3">
+            {/* SELETOR MÊS / ANO */}
+            <div className="flex bg-slate-100 p-1 rounded-xl border items-center">
+              <button
+                onClick={() => setViewMode("mes")}
+                className={`px-3 py-1.5 rounded-lg text-[9px] font-black transition-all ${
+                  viewMode === "mes"
+                    ? "bg-white shadow-sm text-indigo-600"
+                    : "text-slate-400"
+                }`}
+              >
+                MÊS
+              </button>
+              <button
+                onClick={() => setViewMode("ano")}
+                className={`px-3 py-1.5 rounded-lg text-[9px] font-black transition-all ${
+                  viewMode === "ano"
+                    ? "bg-white shadow-sm text-indigo-600"
+                    : "text-slate-400"
+                }`}
+              >
+                ANO
+              </button>
+            </div>
+
             <div className="flex bg-slate-100 p-1 rounded-xl border items-center shrink-0">
               <button
                 onClick={() => setMes((m) => (m === 0 ? 11 : m - 1))}
@@ -384,10 +407,11 @@ export default function SaaSFinanceiro() {
                 <ChevronLeft size={14} />
               </button>
               <span className="text-[10px] font-black uppercase w-28 text-center">
-                {new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(
-                  new Date(ano, mes)
-                )}{" "}
-                {ano}
+                {viewMode === "mes"
+                  ? `${new Intl.DateTimeFormat("pt-BR", {
+                      month: "short",
+                    }).format(new Date(ano, mes))} ${ano}`
+                  : `ANO ${ano}`}
               </span>
               <button
                 onClick={() => setMes((m) => (m === 11 ? 0 : m + 1))}
@@ -492,13 +516,13 @@ export default function SaaSFinanceiro() {
                           dataKey="ganhos"
                           fill="#10b981"
                           radius={[4, 4, 0, 0]}
-                          barSize={8}
+                          barSize={viewMode === "mes" ? 8 : 25}
                         />
                         <Bar
                           dataKey="gastos"
                           fill="#f43f5e"
                           radius={[4, 4, 0, 0]}
-                          barSize={8}
+                          barSize={viewMode === "mes" ? 8 : 25}
                         />
                       </BarChart>
                     </ResponsiveContainer>
@@ -597,7 +621,7 @@ export default function SaaSFinanceiro() {
                           </option>
                         ))}
                       </select>
-                      <button className="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg">
+                      <button className="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                         Registrar
                       </button>
                     </form>
