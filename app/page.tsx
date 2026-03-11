@@ -123,19 +123,35 @@ export default function Login() {
       >
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-50" />
 
-        <div className="bg-indigo-600 p-4 rounded-[2rem] text-white mb-6 shadow-xl relative z-10">
+        {/* --- ÁREA DO LOGO CLICÁVEL --- */}
+        <a 
+          href="https://devlabzz.com.br/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="bg-indigo-600 p-4 rounded-[2rem] text-white mb-6 shadow-xl relative z-10 hover:scale-105 hover:bg-indigo-700 transition-all cursor-pointer block"
+          title="Visitar DevLabzz"
+        >
           <Zap size={32} fill="currentColor" />
-        </div>
+        </a>
 
-        <div className="text-center mb-10 relative z-10">
+        <div className="text-center mb-10 relative z-10 flex flex-col items-center">
           <h1 className="text-4xl font-black tracking-tighter italic uppercase text-slate-900">
             Fin<span className="text-indigo-600">Lab</span>
           </h1>
-          <div className="inline-block mt-1 px-3 py-1 bg-slate-100 rounded-full border border-slate-200">
-            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] italic">
-              BY DEVLABZZ
+          
+          {/* --- SELO DEVLABZZ CLICÁVEL --- */}
+          <a 
+            href="https://devlabzz.com.br/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block mt-2 px-3 py-1 bg-slate-100 rounded-full border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group cursor-pointer"
+            title="Visitar DevLabzz"
+          >
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] italic group-hover:text-indigo-600 transition-colors">
+              DESENVOLVIDO POR DEVLABZZ
             </p>
-          </div>
+          </a>
+          
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-6 italic">
             {isRegistering ? "Crie sua conta agora" : "Gerencie seu império financeiro"}
           </p>
