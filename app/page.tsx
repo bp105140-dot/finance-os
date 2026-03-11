@@ -112,8 +112,8 @@ function ResgateModal({
           placeholder="R$ 0,00"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
-          className={`w-full p-4 rounded-2xl text-center font-black text-lg outline-none mb-6 ${
-            darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"
+          className={`w-full p-4 rounded-2xl text-center font-black text-lg outline-none mb-6 placeholder:text-slate-400 ${
+            darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-700"
           }`}
         />
         <div className="flex gap-3">
@@ -510,7 +510,6 @@ export default function SaaSFinanceiro() {
             : "bg-white border-slate-200"
         }`}
       >
-        {/* HEADER ATUALIZADO COM A NOVA MARCA FINLAB BY DEVLABZZ */}
         <header
           className={`p-4 md:p-8 flex flex-col md:flex-row justify-between items-center border-b shrink-0 gap-4 ${
             darkMode ? "border-slate-800" : "border-slate-50"
@@ -522,7 +521,6 @@ export default function SaaSFinanceiro() {
                 <Zap size={18} fill="currentColor" />
               </div>
               
-              {/* NOVA ÁREA DE TÍTULO */}
               <div className="flex flex-col justify-center">
                 <h1 className="text-base md:text-xl font-black tracking-tighter italic uppercase leading-none mb-1">
                   Fin<span className="text-indigo-600">Lab</span>
@@ -854,7 +852,7 @@ export default function SaaSFinanceiro() {
                           className={`w-full p-3 rounded-xl border-none font-bold text-xs outline-none ${
                             darkMode
                               ? "bg-slate-800 text-white"
-                              : "bg-slate-50 text-slate-900"
+                              : "bg-slate-50 text-slate-700"
                           }`}
                         />
                         <input
@@ -863,10 +861,10 @@ export default function SaaSFinanceiro() {
                           onChange={(e) =>
                             setForm({ ...form, desc: e.target.value })
                           }
-                          className={`w-full p-3 rounded-xl border-none font-bold text-xs uppercase outline-none ${
+                          className={`w-full p-3 rounded-xl border-none font-bold text-xs uppercase outline-none placeholder:text-slate-400 ${
                             darkMode
                               ? "bg-slate-800 text-white"
-                              : "bg-slate-50 text-slate-900"
+                              : "bg-slate-50 text-slate-700"
                           }`}
                         />
                         <div className="flex gap-2">
@@ -878,10 +876,10 @@ export default function SaaSFinanceiro() {
                             onChange={(e) =>
                               setForm({ ...form, valor: e.target.value })
                             }
-                            className={`w-1/2 p-3 rounded-xl border-none font-bold text-xs outline-none ${
+                            className={`w-1/2 p-3 rounded-xl border-none font-bold text-xs outline-none placeholder:text-slate-400 ${
                               darkMode
                                 ? "bg-slate-800 text-white"
-                                : "bg-slate-50 text-slate-900"
+                                : "bg-slate-50 text-slate-700"
                             }`}
                           />
                           <select
@@ -908,7 +906,7 @@ export default function SaaSFinanceiro() {
                             className={`w-full p-3 rounded-xl font-bold text-[10px] uppercase border-none outline-none appearance-none ${
                               darkMode
                                 ? "bg-slate-800 text-white"
-                                : "bg-slate-50 text-slate-900"
+                                : "bg-slate-50 text-slate-700"
                             } ${!form.cat ? "text-slate-400" : ""}`}
                           >
                             <option value="" disabled hidden>
@@ -942,10 +940,10 @@ export default function SaaSFinanceiro() {
                       placeholder="PESQUISAR..."
                       value={busca}
                       onChange={(e) => setBusca(e.target.value)}
-                      className={`w-full pl-12 pr-4 py-3 md:py-4 rounded-2xl md:rounded-[2rem] text-[9px] md:text-[10px] font-black uppercase tracking-widest outline-none border ${
+                      className={`w-full pl-12 pr-4 py-3 md:py-4 rounded-2xl md:rounded-[2rem] text-[9px] md:text-[10px] font-black uppercase tracking-widest outline-none border placeholder:text-slate-400 ${
                         darkMode
                           ? "bg-slate-900 border-slate-800 text-white"
-                          : "bg-white border-slate-100 text-slate-900"
+                          : "bg-white border-slate-100 text-slate-700"
                       }`}
                     />
                   </div>
@@ -1083,10 +1081,10 @@ export default function SaaSFinanceiro() {
                           onChange={(e) =>
                             setNovaMeta({ ...novaMeta, nome: e.target.value })
                           }
-                          className={`flex-1 p-3 rounded-xl text-[10px] font-black uppercase outline-none ${
+                          className={`flex-1 p-3 rounded-xl text-[10px] font-black uppercase outline-none placeholder:text-slate-400 ${
                             darkMode
-                              ? "bg-slate-800"
-                              : "bg-slate-50 text-slate-900"
+                              ? "bg-slate-800 text-white"
+                              : "bg-slate-50 text-slate-700"
                           }`}
                         />
                         <input
@@ -1096,10 +1094,10 @@ export default function SaaSFinanceiro() {
                           onChange={(e) =>
                             setNovaMeta({ ...novaMeta, valor: e.target.value })
                           }
-                          className={`p-3 rounded-xl text-[10px] font-black outline-none ${
+                          className={`p-3 rounded-xl text-[10px] font-black outline-none placeholder:text-slate-400 ${
                             darkMode
-                              ? "bg-slate-800"
-                              : "bg-slate-50 text-slate-900"
+                              ? "bg-slate-800 text-white"
+                              : "bg-slate-50 text-slate-700"
                           }`}
                         />
                         <div className="flex gap-2">
@@ -1108,7 +1106,7 @@ export default function SaaSFinanceiro() {
                             className={`flex-1 p-3 rounded-xl text-[9px] font-black uppercase ${
                               darkMode
                                 ? "bg-slate-800 text-slate-300"
-                                : "bg-slate-100"
+                                : "bg-slate-100 text-slate-600"
                             }`}
                           >
                             X
@@ -1364,7 +1362,7 @@ export default function SaaSFinanceiro() {
                         })
                       }
                       className={`w-full p-4 rounded-2xl font-black border-none uppercase outline-none ${
-                        darkMode ? "bg-slate-800 text-white" : "bg-slate-50"
+                        darkMode ? "bg-slate-800 text-white" : "bg-slate-50 text-slate-700"
                       }`}
                     />
                   </div>
@@ -1421,8 +1419,8 @@ export default function SaaSFinanceiro() {
                       placeholder="NOVA..."
                       value={novaCat}
                       onChange={(e) => setNovaCat(e.target.value)}
-                      className={`flex-1 p-3 rounded-xl text-[10px] font-black uppercase border-none outline-none ${
-                        darkMode ? "bg-slate-700 text-white" : "bg-white"
+                      className={`flex-1 p-3 rounded-xl text-[10px] font-black uppercase border-none outline-none placeholder:text-slate-400 ${
+                        darkMode ? "bg-slate-700 text-white" : "bg-white text-slate-700"
                       }`}
                     />
                     <button
@@ -1447,7 +1445,7 @@ export default function SaaSFinanceiro() {
                         className={`flex justify-between items-center p-3 px-4 rounded-xl text-[9px] font-black shadow-sm border ${
                           darkMode
                             ? "bg-slate-900 border-slate-700"
-                            : "bg-white border-slate-100"
+                            : "bg-white border-slate-100 text-slate-700"
                         }`}
                       >
                         <span className="truncate flex-1 mr-2">{c.nome}</span>
