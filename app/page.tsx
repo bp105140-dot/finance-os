@@ -510,7 +510,7 @@ export default function SaaSFinanceiro() {
             : "bg-white border-slate-200"
         }`}
       >
-        {/* HEADER */}
+        {/* HEADER ATUALIZADO COM A NOVA MARCA FINLAB BY DEVLABZZ */}
         <header
           className={`p-4 md:p-8 flex flex-col md:flex-row justify-between items-center border-b shrink-0 gap-4 ${
             darkMode ? "border-slate-800" : "border-slate-50"
@@ -518,13 +518,33 @@ export default function SaaSFinanceiro() {
         >
           <div className="flex items-center justify-between w-full md:w-auto gap-4">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-600 p-2 md:p-2.5 rounded-xl md:rounded-2xl text-white shadow-lg">
+              <div className="bg-indigo-600 p-2 md:p-2.5 rounded-xl md:rounded-2xl text-white shadow-lg shrink-0">
                 <Zap size={18} fill="currentColor" />
               </div>
-              <h1 className="text-base md:text-xl font-black tracking-tighter italic uppercase">
-                {userConfig.nome}{" "}
-                <span className="text-indigo-600">{userConfig.emoji}</span>
-              </h1>
+              
+              {/* NOVA ÁREA DE TÍTULO */}
+              <div className="flex flex-col justify-center">
+                <h1 className="text-base md:text-xl font-black tracking-tighter italic uppercase leading-none mb-1">
+                  Fin<span className="text-indigo-600">Lab</span>
+                </h1>
+                <div className="flex items-center gap-1 text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                  <span>BY</span>
+                  <a 
+                    href="https://devlabzz.com.br/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:text-indigo-800 transition-colors underline decoration-indigo-200 underline-offset-2"
+                  >
+                    DEVLABZZ
+                  </a>
+                  <span className="mx-1">•</span>
+                  <span className="truncate max-w-[80px] md:max-w-[150px]">
+                    {userConfig.nome}
+                  </span>
+                  <span>{userConfig.emoji}</span>
+                </div>
+              </div>
+
             </div>
             <div className="flex gap-2">
               <button
@@ -879,7 +899,6 @@ export default function SaaSFinanceiro() {
                             <option value="Entrada">Ganho 🟢</option>
                           </select>
                         </div>
-                        {/* SELECT CATEGORIA COM PLACEHOLDER REAL (ESTILO CAMPO DESCRIÇÃO) */}
                         <div className="relative">
                           <select
                             value={form.cat}
@@ -1019,7 +1038,6 @@ export default function SaaSFinanceiro() {
                 </div>
               </motion.div>
             ) : (
-              /* --- ABA COFRE --- */
               <motion.div
                 key="cofre"
                 initial={{ opacity: 0 }}
@@ -1125,7 +1143,6 @@ export default function SaaSFinanceiro() {
                   )}
                 </AnimatePresence>
 
-                {/* LÓGICA DE GRID CORRIGIDA PARA MOBILE (SEM SOBREPOSIÇÃO) */}
                 <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
                   <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6">
                     <div className="lg:col-span-8">
@@ -1232,7 +1249,6 @@ export default function SaaSFinanceiro() {
                         })}
                       </div>
                     </div>
-                    {/* EXTRATO COFRE SEMPRE VISÍVEL NO MOBILE ABAIXO DAS METAS */}
                     <div className="lg:col-span-4 h-auto lg:h-[calc(100vh-350px)]">
                       <div
                         className={`rounded-3xl border flex flex-col h-full overflow-hidden ${
