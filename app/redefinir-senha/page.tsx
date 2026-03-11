@@ -9,6 +9,7 @@ export default function RedefinirSenha() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+  
   const [novaSenha, setNovaSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
@@ -45,12 +46,34 @@ export default function RedefinirSenha() {
           <Zap size={32} fill="currentColor" />
         </div>
 
-        <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 relative z-10 text-slate-900">
-          Nova Senha
-        </h2>
-        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-8 relative z-10 italic">
-          Segurança em primeiro lugar
-        </p>
+        {/* ÁREA DA MARCA ATUALIZADA (Idêntica ao Login) */}
+        <div className="text-center mb-8 relative z-10">
+          {/* Novo Nome do Produto */}
+          <h1 className="text-4xl font-black tracking-tighter italic uppercase">
+            Fin<span className="text-indigo-600">Lab</span>
+          </h1>
+          
+          {/* Assinatura da Empresa com Link */}
+          <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+            by{" "}
+            <a 
+              href="https://devlabzz.com.br/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-indigo-600 hover:text-indigo-800 transition-colors underline decoration-indigo-200 underline-offset-4"
+            >
+              DevLabzz
+            </a>
+          </p>
+
+          {/* Subtítulo da Página de Recuperação */}
+          <h2 className="text-lg font-black uppercase italic tracking-tighter mt-6 text-slate-900">
+            Nova Senha
+          </h2>
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1 italic">
+            Segurança em primeiro lugar
+          </p>
+        </div>
 
         {sucesso ? (
           <motion.div
