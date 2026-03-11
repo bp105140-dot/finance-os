@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Componente de notificação (Toast)
 function Toast({
   message,
   type,
@@ -48,13 +47,11 @@ function Toast({
 }
 
 export default function Login() {
-  // Inicialização do cliente Supabase
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Estados do formulário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,7 +61,6 @@ export default function Login() {
     type: "error" | "success";
   } | null>(null);
 
-  // Função para lidar com Login ou Registro
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -93,7 +89,6 @@ export default function Login() {
     setLoading(false);
   };
 
-  // Função para recuperação de senha
   const handleForgotPassword = async () => {
     if (!email) {
       setToast({ msg: "DIGITE SEU E-MAIL NO CAMPO ACIMA!", type: "error" });
@@ -132,15 +127,12 @@ export default function Login() {
           <Zap size={32} fill="currentColor" />
         </div>
 
-        {/* ÁREA DA MARCA ATUALIZADA */}
         <div className="text-center mb-10 relative z-10">
-          {/* Novo Nome do Produto */}
           <h1 className="text-4xl font-black tracking-tighter italic uppercase">
             Fin<span className="text-indigo-600">Lab</span>
           </h1>
           
-          {/* Assinatura da Empresa com Link */}
-          <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+          <p className="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-widest">
             by{" "}
             <a 
               href="https://devlabzz.com.br/" 
@@ -152,40 +144,44 @@ export default function Login() {
             </a>
           </p>
 
-          {/* Slogan antigo mantido */}
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 italic">
+          {/* Subtítulo escurecido para slate-500 */}
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-4 italic">
             {isRegistering ? "Crie sua conta agora" : "Gerencie seu império"}
           </p>
         </div>
 
         <form onSubmit={handleAuth} className="w-full space-y-4 relative z-10">
           <div className="relative">
+            {/* Ícone escurecido para slate-400 */}
             <Mail
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
               size={18}
             />
+            {/* Adicionado text-slate-900 e placeholder:text-slate-400 */}
             <input
               required
               type="email"
               placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-none font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-300 shadow-inner"
+              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 text-slate-900 border-none font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-400 shadow-inner"
             />
           </div>
 
           <div className="relative">
+            {/* Ícone escurecido para slate-400 */}
             <Lock
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
               size={18}
             />
+            {/* Adicionado text-slate-900 e placeholder:text-slate-400 */}
             <input
               required
               type="password"
               placeholder="SENHA"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-none font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all uppercase placeholder:text-slate-300 shadow-inner"
+              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 text-slate-900 border-none font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all uppercase placeholder:text-slate-400 shadow-inner"
             />
           </div>
 
@@ -208,9 +204,10 @@ export default function Login() {
         </form>
 
         <div className="mt-8 flex flex-col gap-4 text-center relative z-10">
+          {/* Textos de suporte escurecidos para slate-500 */}
           <button
             onClick={() => setIsRegistering(!isRegistering)}
-            className="text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest"
+            className="text-[10px] font-black text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-widest"
           >
             {isRegistering
               ? "Já tenho uma conta? Entrar"
@@ -221,7 +218,7 @@ export default function Login() {
             <button
               type="button"
               onClick={handleForgotPassword}
-              className="text-[10px] font-black text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-widest italic underline underline-offset-4 decoration-slate-200"
+              className="text-[10px] font-black text-slate-600 hover:text-indigo-600 transition-colors uppercase tracking-widest italic underline underline-offset-4 decoration-slate-300"
             >
               Esqueci minha senha
             </button>
