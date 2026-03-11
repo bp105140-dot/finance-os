@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Componente de notificação (Toast)
 function Toast({
   message,
   type,
@@ -47,11 +48,13 @@ function Toast({
 }
 
 export default function Login() {
+  // Inicialização do cliente Supabase
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
+  // Estados do formulário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -61,6 +64,7 @@ export default function Login() {
     type: "error" | "success";
   } | null>(null);
 
+  // Função para lidar com Login ou Registro
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -89,12 +93,12 @@ export default function Login() {
     setLoading(false);
   };
 
+  // Função para recuperação de senha
   const handleForgotPassword = async () => {
     if (!email) {
       setToast({ msg: "DIGITE SEU E-MAIL NO CAMPO ACIMA!", type: "error" });
       return;
     }
-    // Redireciona dinamicamente para onde o usuário estiver (Localhost ou Vercel)
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.toLowerCase().trim(),
       {
@@ -128,11 +132,28 @@ export default function Login() {
           <Zap size={32} fill="currentColor" />
         </div>
 
+        {/* ÁREA DA MARCA ATUALIZADA */}
         <div className="text-center mb-10 relative z-10">
-          <h1 className="text-3xl font-black tracking-tighter italic uppercase">
-            Finance<span className="text-indigo-600">.</span>OS
+          {/* Novo Nome do Produto */}
+          <h1 className="text-4xl font-black tracking-tighter italic uppercase">
+            Fin<span className="text-indigo-600">Lab</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2 italic">
+          
+          {/* Assinatura da Empresa com Link */}
+          <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+            by{" "}
+            <a 
+              href="https://devlabzz.com.br/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-indigo-600 hover:text-indigo-800 transition-colors underline decoration-indigo-200 underline-offset-4"
+            >
+              DevLabzz
+            </a>
+          </p>
+
+          {/* Slogan antigo mantido */}
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 italic">
             {isRegistering ? "Crie sua conta agora" : "Gerencie seu império"}
           </p>
         </div>
@@ -196,7 +217,6 @@ export default function Login() {
               : "Ainda não tem conta? Registre-se"}
           </button>
 
-          {/* BOTÃO COM COR CORRIGIDA (SLATE-500) */}
           {!isRegistering && (
             <button
               type="button"
